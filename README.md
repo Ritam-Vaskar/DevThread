@@ -1,4 +1,4 @@
-# DevThreads v2
+# DevThreads v1
 
 A fully-functional developer community platform featuring microblogs (DevTweets) and short coding videos (DevReels) with gamification, real-time updates, and a comprehensive admin portal.
 
