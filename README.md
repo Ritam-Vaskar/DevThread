@@ -392,12 +392,3 @@ Built with ❤️ by developers, for developers.
 - MongoDB team for the database
 - Cloudinary for media management
 
-## 📧 Support
-
-For issues and questions:
-- Open an issue on GitHub
-- Email: support@devthreads.com
-
----
-
-**Happy Coding! 🚀**
