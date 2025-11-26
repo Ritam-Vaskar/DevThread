@@ -1,0 +1,41 @@
+# GraphQL schema location
+schema:
+  - graph/schema/*.graphql
+
+# Where should the generated code go?
+exec:
+  filename: graph/generated/generated.go
+  package: generated
+
+# Where should the resolver implementations go?
+model:
+  filename: graph/model/models_gen.go
+  package: model
+
+# Where should the resolver implementations go?
+resolver:
+  layout: follow-schema
+  dir: graph/resolver
+  package: resolver
+  filename_template: "{name}.resolvers.go"
+
+# Optional: turn on to not generate the gqlgen schema stitching
+# autobind:
+#  - "github.com/devthreads/backend/graph/model"
+
+# Allow custom scalar definitions
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  Time:
+    model:
+      - time.Time

@@ -1,0 +1,318 @@
+scalar Time
+scalar Upload
+
+# ========== Types ==========
+
+type User {
+  id: ID!
+  username: String!
+  displayName: String
+  email: String!
+  avatarUrl: String
+  bio: String
+  reputation: Int!
+  isAdmin: Boolean!
+  bannedUntil: Time
+  createdAt: Time!
+  updatedAt: Time!
+  badges: [Badge!]!
+}
+
+type Post {
+  id: ID!
+  author: User!
+  content: String!
+  codeSnippet: String
+  language: String
+  tags: [String!]
+  visibility: Visibility!
+  createdAt: Time!
+  updatedAt: Time!
+  likesCount: Int!
+  commentsCount: Int!
+  viewsCount: Int!
+  upvotesCount: Int!
+  viewerLiked: Boolean
+  viewerUpvoted: Boolean
+  comments: [Comment!]
+}
+
+type Reel {
+  id: ID!
+  author: User!
+  title: String
+  description: String
+  videoUrl: String!
+  thumbnailUrl: String
+  duration: Int!
+  tags: [String!]
+  visibility: Visibility!
+  createdAt: Time!
+  updatedAt: Time!
+  likesCount: Int!
+  commentsCount: Int!
+  viewsCount: Int!
+  viewerLiked: Boolean
+  comments: [Comment!]
+}
+
+type Comment {
+  id: ID!
+  author: User!
+  content: String!
+  postId: ID
+  reelId: ID
+  parentCommentId: ID
+  createdAt: Time!
+  likesCount: Int!
+  replies: [Comment!]
+}
+
+type Badge {
+  id: ID!
+  name: String!
+  description: String!
+  icon: String!
+  earnedAt: Time!
+}
+
+type AuthPayload {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+type AdminStats {
+  totalUsers: Int!
+  activeUsers7d: Int!
+  totalPosts: Int!
+  totalReels: Int!
+  newSignupsToday: Int!
+  postsToday: Int!
+  reelsToday: Int!
+  totalEngagements: Int!
+  trendingPosts: [Post!]!
+  trendingReels: [Reel!]!
+}
+
+type ModerationLog {
+  id: ID!
+  admin: User!
+  action: ModerationAction!
+  targetType: String!
+  targetId: ID!
+  reason: String
+  createdAt: Time!
+}
+
+type Notification {
+  id: ID!
+  userId: ID!
+  type: NotificationType!
+  content: String!
+  relatedId: ID
+  read: Boolean!
+  createdAt: Time!
+}
+
+type FeedResult {
+  posts: [Post!]!
+  hasMore: Boolean!
+  cursor: ID
+}
+
+type CloudinarySignature {
+  signature: String!
+  timestamp: Int!
+  cloudName: String!
+  apiKey: String!
+  folder: String!
+}
+
+# ========== Enums ==========
+
+enum Visibility {
+  PUBLIC
+  UNLISTED
+  PRIVATE
+}
+
+enum ModerationAction {
+  DELETE_POST
+  DELETE_REEL
+  BAN_USER
+  UNBAN_USER
+  WARN_USER
+  DELETE_COMMENT
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  REPLY
+  FOLLOW
+  MENTION
+  BADGE_EARNED
+}
+
+enum FeedFilter {
+  LATEST
+  TRENDING
+  FOLLOWING
+}
+
+# ========== Inputs ==========
+
+input SignupInput {
+  username: String!
+  email: String!
+  password: String!
+  displayName: String
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input CreatePostInput {
+  content: String!
+  codeSnippet: String
+  language: String
+  tags: [String!]
+  visibility: Visibility
+}
+
+input UpdatePostInput {
+  content: String
+  codeSnippet: String
+  language: String
+  tags: [String!]
+  visibility: Visibility
+}
+
+input CreateReelInput {
+  title: String
+  description: String
+  videoUrl: String!
+  thumbnailUrl: String
+  duration: Int!
+  tags: [String!]
+  visibility: Visibility
+}
+
+input CreateCommentInput {
+  content: String!
+  postId: ID
+  reelId: ID
+  parentCommentId: ID
+}
+
+input UpdateProfileInput {
+  displayName: String
+  bio: String
+  avatarUrl: String
+}
+
+input AdminBanUserInput {
+  userId: ID!
+  reason: String!
+  duration: Int # in days
+}
+
+input SearchInput {
+  query: String!
+  type: String # "posts", "reels", "users"
+  limit: Int
+}
+
+# ========== Queries ==========
+
+type Query {
+  # Auth
+  me: User
+
+  # Posts
+  feed(filter: FeedFilter, limit: Int, cursor: ID): FeedResult!
+  post(id: ID!): Post
+  userPosts(userId: ID!, limit: Int, cursor: ID): FeedResult!
+  searchPosts(query: String!, limit: Int): [Post!]!
+
+  # Reels
+  reels(limit: Int, cursor: ID): [Reel!]!
+  reel(id: ID!): Reel
+  userReels(userId: ID!, limit: Int): [Reel!]!
+  trendingReels(limit: Int): [Reel!]!
+
+  # Users
+  user(id: ID, username: String): User
+  searchUsers(query: String!, limit: Int): [User!]!
+
+  # Comments
+  comments(postId: ID, reelId: ID, limit: Int): [Comment!]!
+
+  # Notifications
+  notifications(limit: Int, unreadOnly: Boolean): [Notification!]!
+  unreadNotificationsCount: Int!
+
+  # Admin
+  adminStats: AdminStats!
+  adminUsers(limit: Int, cursor: ID, filter: String): [User!]!
+  adminPosts(limit: Int, cursor: ID, filter: String): [Post!]!
+  adminReels(limit: Int, cursor: ID): [Reel!]!
+  adminModerationLogs(limit: Int): [ModerationLog!]!
+
+  # Cloudinary
+  getCloudinarySignature(folder: String!): CloudinarySignature!
+}
+
+# ========== Mutations ==========
+
+type Mutation {
+  # Auth
+  signup(input: SignupInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  loginWithGithub(code: String!): AuthPayload!
+  refreshToken(refreshToken: String!): AuthPayload!
+  logout: Boolean!
+
+  # Posts
+  createPost(input: CreatePostInput!): Post!
+  updatePost(id: ID!, input: UpdatePostInput!): Post!
+  deletePost(id: ID!): Boolean!
+  likePost(id: ID!): Boolean!
+  upvotePost(id: ID!): Boolean!
+
+  # Reels
+  createReel(input: CreateReelInput!): Reel!
+  deleteReel(id: ID!): Boolean!
+  likeReel(id: ID!): Boolean!
+
+  # Comments
+  createComment(input: CreateCommentInput!): Comment!
+  deleteComment(id: ID!): Boolean!
+  likeComment(id: ID!): Boolean!
+
+  # Profile
+  updateProfile(input: UpdateProfileInput!): User!
+
+  # Notifications
+  markNotificationRead(id: ID!): Boolean!
+  markAllNotificationsRead: Boolean!
+
+  # Admin
+  adminBanUser(input: AdminBanUserInput!): Boolean!
+  adminUnbanUser(userId: ID!): Boolean!
+  adminDeletePost(postId: ID!, reason: String!): Boolean!
+  adminDeleteReel(reelId: ID!, reason: String!): Boolean!
+  adminDeleteComment(commentId: ID!, reason: String!): Boolean!
+  adminUpdateUserReputation(userId: ID!, reputation: Int!): Boolean!
+}
+
+# ========== Subscriptions ==========
+
+type Subscription {
+  commentAdded(postId: ID, reelId: ID): Comment!
+  postLiked(postId: ID!): Int!
+  notificationReceived(userId: ID!): Notification!
+}
